@@ -3,7 +3,6 @@ import { Header } from "@/components/layout/Header";
 import { ProductTable } from "@/components/products/ProductTable";
 import { ProductForm } from "@/components/products/ProductForm";
 import { DeleteProductDialog } from "@/components/products/DeleteProductDialog";
-import { DevelopmentBanner } from "@/components/dev/DevelopmentBanner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -143,9 +142,6 @@ export default function Dashboard() {
       <Header />
 
       <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Development Banner */}
-        <DevelopmentBanner />
-
         {/* Header Section */}
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div>
