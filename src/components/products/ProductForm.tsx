@@ -162,7 +162,7 @@ export const ProductForm = ({
                       />
                     </FormControl>
                     <FormDescription>
-                      Unique identifier for the product. Use letters, numbers,
+                      Unique identifier (1-50 characters). Use letters, numbers,
                       hyphens, and underscores only.
                     </FormDescription>
                     <FormMessage />
@@ -244,7 +244,7 @@ export const ProductForm = ({
                       />
                     </FormControl>
                     <FormDescription>
-                      Current inventory quantity
+                      Current inventory quantity (must be non-negative)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
