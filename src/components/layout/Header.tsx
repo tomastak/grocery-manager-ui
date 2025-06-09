@@ -1,4 +1,4 @@
-import { ShoppingCart, Leaf, LogOut, Bell } from "lucide-react";
+import { ShoppingCart, Leaf, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
 
 export const Header = () => {
