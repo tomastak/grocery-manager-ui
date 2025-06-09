@@ -45,7 +45,7 @@ const createProductSchema = z.object({
     .number()
     .int("Stock quantity must be a whole number")
     .min(0, "Stock quantity cannot be negative"),
-  pricePerUnit: z.number().min(0.01, "Price per unit must be at least 1 Kč"),
+  pricePerUnit: z.number().min(0.01, "Price per unit must be at least 0.01 Kč"),
 });
 
 const updateProductSchema = z.object({
@@ -57,7 +57,7 @@ const updateProductSchema = z.object({
     .number()
     .int("Stock quantity must be a whole number")
     .min(0, "Stock quantity cannot be negative"),
-  pricePerUnit: z.number().min(0.01, "Price per unit must be at least 1 Kč"),
+  pricePerUnit: z.number().min(0.01, "Price per unit must be at least 0.01 Kč"),
 });
 
 type CreateProductFormData = z.infer<typeof createProductSchema>;
@@ -218,7 +218,7 @@ export const ProductForm = ({
                       </div>
                     </FormControl>
                     <FormDescription>
-                      Price in Czech koruna (minimum 1 Kč)
+                      Price in Czech koruna (minimum 0.01 Kč)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
