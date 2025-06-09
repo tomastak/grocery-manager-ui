@@ -166,12 +166,6 @@ export default function Dashboard() {
               <Label htmlFor="show-archived" className="text-sm text-gray-600">
                 Show archived products
               </Label>
-              {!onlyActive && (
-                <Badge variant="secondary" className="text-xs">
-                  <Archive className="w-3 h-3 mr-1" />
-                  Including archived
-                </Badge>
-              )}
             </div>
             <Button
               onClick={() => setProductFormOpen(true)}
