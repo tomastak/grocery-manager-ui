@@ -162,7 +162,7 @@ export const LoginForm = ({ onLogin, isLoading }: LoginFormProps) => {
 
         {/* Footer */}
         <div className="text-center text-sm text-gray-500">
-          <p>© 2024 FreshMart. Built with React & Spring Boot.</p>
+          <p>© 2025 FreshMart. Built with React & Spring Boot.</p>
         </div>
       </div>
     </div>
