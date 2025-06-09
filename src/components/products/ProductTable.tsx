@@ -271,6 +271,9 @@ export const ProductTable = ({
     getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: (value) => setGlobalFilter(value || ""),
     globalFilterFn: "includesString",
+    initialState: {
+      globalFilter: "",
+    },
     state: {
       sorting,
       columnFilters,
