@@ -21,7 +21,7 @@ import {
   Package,
   TrendingUp,
   AlertTriangle,
-  DollarSign,
+  Coins,
   RefreshCw,
   AlertCircle,
   Archive,
@@ -207,7 +207,7 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Value
               </CardTitle>
-              <DollarSign className="h-5 w-5 text-fresh-600" />
+              <Coins className="h-5 w-5 text-fresh-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
