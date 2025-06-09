@@ -59,7 +59,7 @@ export const ProductTable = ({
 }: ProductTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [globalFilter, setGlobalFilter] = useState<string>("");
 
   const getStockStatus = (stock: number) => {
     if (stock === 0)
@@ -333,8 +333,8 @@ export const ProductTable = ({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder="Search products by name or code..."
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
+            value={globalFilter || ""}
+            onChange={(event) => setGlobalFilter(event.target.value || "")}
             className="pl-10 bg-white"
           />
         </div>
