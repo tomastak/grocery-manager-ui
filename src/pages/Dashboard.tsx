@@ -127,7 +127,7 @@ export default function Dashboard() {
                 className="ml-2"
                 onClick={() => refetch()}
               >
-                <Refresh className="w-4 h-4 mr-1" />
+                <RefreshCw className="w-4 h-4 mr-1" />
                 Retry
               </Button>
             </AlertDescription>
