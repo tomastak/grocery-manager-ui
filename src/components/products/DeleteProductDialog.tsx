@@ -93,9 +93,11 @@ export const DeleteProductDialog = ({
               <div className="flex items-start space-x-2">
                 <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-blue-800">
-                  <strong>Note:</strong> If this product has active orders
-                  (PENDING or PAID), it will be archived but not permanently
-                  deleted. The product can be restored later if needed.
+                  <strong>Note:</strong>
+                  <p>
+                    If this product has active orders (PENDING or PAID), it will
+                    be archived but not permanently deleted.
+                  </p>
                 </div>
               </div>
             </div>
