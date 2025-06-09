@@ -274,7 +274,7 @@ export const ProductTable = ({
     state: {
       sorting,
       columnFilters,
-      globalFilter,
+      globalFilter: globalFilter || "",
     },
   });
 
