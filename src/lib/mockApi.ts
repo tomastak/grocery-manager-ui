@@ -7,55 +7,55 @@ import {
   ApiError,
 } from "@/types/product";
 
-// Mock data for development
+// Mock data for development - prices updated for Czech koruna
 const MOCK_PRODUCTS: Product[] = [
   {
     code: "APPLE001",
     name: "Red Apples",
     stockQuantity: 150,
-    pricePerUnit: 1.99,
+    pricePerUnit: 45.99, // ~$2 in CZK
   },
   {
     code: "BANANA002",
     name: "Bananas",
     stockQuantity: 80,
-    pricePerUnit: 0.89,
+    pricePerUnit: 22.5, // ~$1 in CZK
   },
   {
     code: "MILK003",
     name: "Whole Milk 1L",
     stockQuantity: 25,
-    pricePerUnit: 3.49,
+    pricePerUnit: 79.9, // ~$3.50 in CZK
   },
   {
     code: "BREAD004",
     name: "Whole Wheat Bread",
     stockQuantity: 5,
-    pricePerUnit: 2.99,
+    pricePerUnit: 68.5, // ~$3 in CZK
   },
   {
     code: "EGGS005",
     name: "Free Range Eggs (12 pack)",
     stockQuantity: 0,
-    pricePerUnit: 4.99,
+    pricePerUnit: 115.0, // ~$5 in CZK
   },
   {
     code: "TOMATO006",
     name: "Fresh Tomatoes",
     stockQuantity: 45,
-    pricePerUnit: 2.49,
+    pricePerUnit: 56.9, // ~$2.50 in CZK
   },
   {
     code: "CHEESE007",
     name: "Cheddar Cheese Block",
     stockQuantity: 12,
-    pricePerUnit: 5.99,
+    pricePerUnit: 137.5, // ~$6 in CZK
   },
   {
     code: "CARROT008",
     name: "Organic Carrots",
     stockQuantity: 35,
-    pricePerUnit: 1.79,
+    pricePerUnit: 41.0, // ~$1.80 in CZK
   },
 ];
 

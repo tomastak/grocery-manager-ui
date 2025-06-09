@@ -71,9 +71,9 @@ export default function Dashboard() {
   ).length;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("cs-CZ", {
       style: "currency",
-      currency: "USD",
+      currency: "CZK",
     }).format(amount);
   };
 

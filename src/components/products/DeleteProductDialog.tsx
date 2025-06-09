@@ -29,9 +29,9 @@ export const DeleteProductDialog = ({
   if (!product) return null;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("cs-CZ", {
       style: "currency",
-      currency: "USD",
+      currency: "CZK",
     }).format(amount);
   };
 

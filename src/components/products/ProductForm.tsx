@@ -45,7 +45,7 @@ const createProductSchema = z.object({
     .number()
     .int("Stock quantity must be a whole number")
     .min(0, "Stock quantity cannot be negative"),
-  pricePerUnit: z.number().min(0.01, "Price per unit must be at least $0.01"),
+  pricePerUnit: z.number().min(0.01, "Price per unit must be at least 1 Kč"),
 });
 
 const updateProductSchema = z.object({
@@ -57,7 +57,7 @@ const updateProductSchema = z.object({
     .number()
     .int("Stock quantity must be a whole number")
     .min(0, "Stock quantity cannot be negative"),
-  pricePerUnit: z.number().min(0.01, "Price per unit must be at least $0.01"),
+  pricePerUnit: z.number().min(0.01, "Price per unit must be at least 1 Kč"),
 });
 
 type CreateProductFormData = z.infer<typeof createProductSchema>;
@@ -201,8 +201,8 @@ export const ProductForm = ({
                     <FormLabel>Price per Unit *</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                          $
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                          Kč
                         </span>
                         <Input
                           type="number"
@@ -213,12 +213,12 @@ export const ProductForm = ({
                           onChange={(e) =>
                             field.onChange(parseFloat(e.target.value) || 0)
                           }
-                          className="bg-white pl-8"
+                          className="bg-white pr-8"
                         />
                       </div>
                     </FormControl>
                     <FormDescription>
-                      Price in USD (minimum $0.01)
+                      Price in Czech koruna (minimum 1 Kč)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -270,7 +270,7 @@ export const ProductForm = ({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Current Price:</span>
-                    <span>${product.pricePerUnit.toFixed(2)}</span>
+                    <span>{product.pricePerUnit.toFixed(2)} Kč</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Current Stock:</span>

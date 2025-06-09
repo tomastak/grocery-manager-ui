@@ -110,7 +110,7 @@ interface Product {
   code: string; // Unique product identifier
   name: string; // Product name (max 255 chars)
   stockQuantity: number; // Current stock (≥ 0)
-  pricePerUnit: number; // Price in USD (≥ 0.01)
+  pricePerUnit: number; // Price in CZK (≥ 0.01)
 }
 ```
 
