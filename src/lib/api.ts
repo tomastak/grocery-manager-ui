@@ -8,10 +8,15 @@ import {
   CreateOrderRequest,
   Order,
 } from "@/types/product";
+import { mockApiClient } from "./mockApi";
 
 // API base URL from OpenAPI spec
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
+// Check if we're in development mode without a backend
+const isDevelopmentMode =
+  import.meta.env.DEV && !import.meta.env.VITE_USE_REAL_API;
 
 class ApiClient {
   private baseURL: string;
@@ -29,6 +34,11 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {},
   ): Promise<T> {
+    // Use mock API in development mode
+    if (isDevelopmentMode) {
+      return this.handleMockRequest<T>(endpoint, options);
+    }
+
     const url = `${this.baseURL}${endpoint}`;
     const authHeader = this.getAuthHeader();
 
@@ -89,9 +99,57 @@ class ApiClient {
     }
   }
 
+  private async handleMockRequest<T>(
+    endpoint: string,
+    options: RequestInit = {},
+  ): Promise<T> {
+    const method = options.method || "GET";
+    const body = options.body ? JSON.parse(options.body as string) : null;
+
+    // Route to appropriate mock method
+    if (endpoint.startsWith("/api/v1/products")) {
+      const codeMatch = endpoint.match(/\/api\/v1\/products\/([^?]+)/);
+
+      if (method === "GET" && !codeMatch) {
+        // GET /api/v1/products
+        const urlParams = new URLSearchParams(endpoint.split("?")[1] || "");
+        const onlyActive = urlParams.get("onlyActive") !== "false";
+        return mockApiClient.getProducts(onlyActive) as Promise<T>;
+      } else if (method === "GET" && codeMatch) {
+        // GET /api/v1/products/{code}
+        return mockApiClient.getProduct(
+          decodeURIComponent(codeMatch[1]),
+        ) as Promise<T>;
+      } else if (method === "POST") {
+        // POST /api/v1/products
+        return mockApiClient.createProduct(body) as Promise<T>;
+      } else if (method === "PUT" && codeMatch) {
+        // PUT /api/v1/products/{code}
+        return mockApiClient.updateProduct(
+          decodeURIComponent(codeMatch[1]),
+          body,
+        ) as Promise<T>;
+      } else if (method === "DELETE" && codeMatch) {
+        // DELETE /api/v1/products/{code}
+        return mockApiClient.deleteProduct(
+          decodeURIComponent(codeMatch[1]),
+        ) as Promise<T>;
+      }
+    }
+
+    throw new Error(`Mock API: Unsupported endpoint ${method} ${endpoint}`);
+  }
+
   // Authentication - simplified since there's no dedicated auth endpoint
-  // We'll test authentication by trying to fetch products
   async login(credentials: LoginRequest): Promise<AuthResponse> {
+    if (isDevelopmentMode) {
+      const result = await mockApiClient.login(credentials);
+      // Store credentials for consistency
+      const encoded = btoa(`${credentials.username}:${credentials.password}`);
+      localStorage.setItem("auth_credentials", encoded);
+      return result;
+    }
+
     // Create Base64 encoded credentials
     const encoded = btoa(`${credentials.username}:${credentials.password}`);
     localStorage.setItem("auth_credentials", encoded);
@@ -114,6 +172,9 @@ class ApiClient {
   }
 
   logout(): void {
+    if (isDevelopmentMode) {
+      mockApiClient.logout();
+    }
     localStorage.removeItem("auth_credentials");
   }
 
@@ -176,6 +237,7 @@ class ApiClient {
   }
 
   // Orders API - matching the exact OpenAPI specification
+  // Note: These will only work with real API, not in mock mode
 
   /**
    * Create a new order
@@ -205,8 +267,12 @@ class ApiClient {
     });
   }
 
-  // Health check (not in API spec but useful for connection testing)
+  // Health check
   async healthCheck(): Promise<{ status: string }> {
+    if (isDevelopmentMode) {
+      return mockApiClient.healthCheck();
+    }
+
     try {
       await this.getProducts();
       return { status: "ok" };
