@@ -21,7 +21,7 @@ import {
   TrendingUp,
   AlertTriangle,
   DollarSign,
-  Refresh,
+  RefreshCw,
   AlertCircle,
   Archive,
 } from "lucide-react";
