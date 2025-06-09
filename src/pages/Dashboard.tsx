@@ -190,7 +190,7 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Products
               </CardTitle>
-              <Package className="h-5 w-5 text-grocery-600" />
+              <Package className="h-7 w-7 text-grocery-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
@@ -207,7 +207,7 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Value
               </CardTitle>
-              <PiggyBank className="h-5 w-5 text-fresh-600" />
+              <PiggyBank className="h-7 w-7 text-fresh-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
@@ -224,7 +224,7 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-gray-600">
                 Low Stock
               </CardTitle>
-              <TrendingUp className="h-5 w-5 text-organic-500" />
+              <TrendingUp className="h-7 w-7 text-organic-500" />
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-2">
@@ -246,7 +246,7 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-gray-600">
                 Out of Stock
               </CardTitle>
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <AlertTriangle className="h-7 w-7 text-red-500" />
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-2">
