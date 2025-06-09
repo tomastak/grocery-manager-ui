@@ -306,7 +306,7 @@ export default function Dashboard() {
                 disabled={isLoading}
                 className="shrink-0"
               >
-                <Refresh
+                <RefreshCw
                   className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")}
                 />
                 Refresh
