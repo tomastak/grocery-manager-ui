@@ -1,55 +1,66 @@
+// Product types based on the exact OpenAPI specification
+
 export interface Product {
-  id: number;
+  code: string;
   name: string;
-  category: string;
-  price: number;
-  stock: number;
-  description?: string;
-  sku?: string;
-  barcode?: string;
-  unit?: string;
-  expiryDate?: string;
-  supplier?: string;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  stockQuantity: number;
+  pricePerUnit: number;
 }
 
 export interface CreateProductRequest {
+  code: string;
   name: string;
-  category: string;
-  price: number;
-  stock: number;
-  description?: string;
-  sku?: string;
-  barcode?: string;
-  unit?: string;
-  expiryDate?: string;
-  supplier?: string;
-  isActive?: boolean;
+  stockQuantity: number;
+  pricePerUnit: number;
 }
 
-export interface UpdateProductRequest extends Partial<CreateProductRequest> {
-  id: number;
+export interface UpdateProductRequest {
+  name: string;
+  stockQuantity: number;
+  pricePerUnit: number;
 }
 
 export interface ProductsResponse {
   products: Product[];
   total: number;
-  page: number;
-  limit: number;
 }
 
+// Order types based on the API specification
+export interface OrderItem {
+  code?: string;
+  productCode: string;
+  quantity: number;
+  unitPrice?: number;
+  totalPrice?: number;
+}
+
+export interface CreateOrderRequest {
+  items: Array<{
+    productCode: string;
+    quantity: number;
+  }>;
+}
+
+export interface Order {
+  code?: string;
+  status?: "PENDING" | "PAID" | "CANCELED" | "EXPIRED";
+  totalAmount?: number;
+  expiresAt?: string;
+  items: OrderItem[];
+}
+
+// Error handling types
 export interface ApiError {
-  message: string;
   status: number;
-  details?: string;
+  error: string;
+  message: string;
+  timestamp: string;
+  data?: Record<string, string>;
 }
 
+// Auth types (simplified since no dedicated auth endpoint)
 export interface User {
-  id: number;
   username: string;
-  email?: string;
   role?: string;
 }
 

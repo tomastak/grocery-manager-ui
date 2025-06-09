@@ -39,6 +39,7 @@ import {
   TrendingUp,
   TrendingDown,
   AlertTriangle,
+  Copy,
 } from "lucide-react";
 import { Product } from "@/types/product";
 import { cn } from "@/lib/utils";
@@ -89,7 +90,39 @@ export const ProductTable = ({
     }).format(amount);
   };
 
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // You could add a toast notification here if desired
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
   const columns: ColumnDef<Product>[] = [
+    {
+      accessorKey: "code",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-8 p-0 font-semibold"
+          >
+            Product Code
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const code = row.getValue("code") as string;
+        return (
+          <div className="font-mono text-sm text-gray-800 bg-gray-50 px-2 py-1 rounded border">
+            {code}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -105,19 +138,19 @@ export const ProductTable = ({
         );
       },
       cell: ({ row }) => {
-        const product = row.original;
+        const name = row.getValue("name") as string;
         return (
-          <div className="space-y-1">
-            <div className="font-medium text-gray-900">{product.name}</div>
-            {product.sku && (
-              <div className="text-xs text-gray-500">SKU: {product.sku}</div>
-            )}
+          <div
+            className="font-medium text-gray-900 max-w-xs truncate"
+            title={name}
+          >
+            {name}
           </div>
         );
       },
     },
     {
-      accessorKey: "category",
+      accessorKey: "pricePerUnit",
       header: ({ column }) => {
         return (
           <Button
@@ -125,35 +158,13 @@ export const ProductTable = ({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-8 p-0 font-semibold"
           >
-            Category
+            Price per Unit
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
       cell: ({ row }) => {
-        return (
-          <Badge variant="outline" className="font-medium">
-            {row.getValue("category")}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "price",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-8 p-0 font-semibold"
-          >
-            Price
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const amount = parseFloat(row.getValue("price"));
+        const amount = parseFloat(row.getValue("pricePerUnit"));
         return (
           <div className="font-medium text-gray-900">
             {formatCurrency(amount)}
@@ -162,7 +173,7 @@ export const ProductTable = ({
       },
     },
     {
-      accessorKey: "stock",
+      accessorKey: "stockQuantity",
       header: ({ column }) => {
         return (
           <Button
@@ -170,19 +181,21 @@ export const ProductTable = ({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-8 p-0 font-semibold"
           >
-            Stock
+            Stock Quantity
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
       cell: ({ row }) => {
-        const stock = row.getValue("stock") as number;
+        const stock = row.getValue("stockQuantity") as number;
         const status = getStockStatus(stock);
         const Icon = status.icon;
 
         return (
           <div className="flex items-center space-x-2">
-            <span className="font-medium text-gray-900">{stock}</span>
+            <span className="font-medium text-gray-900 min-w-[3rem]">
+              {stock}
+            </span>
             <Badge variant={status.variant} className="text-xs">
               <Icon className="w-3 h-3 mr-1" />
               {status.label}
@@ -192,14 +205,17 @@ export const ProductTable = ({
       },
     },
     {
-      accessorKey: "unit",
-      header: "Unit",
+      id: "totalValue",
+      header: "Total Value",
       cell: ({ row }) => {
-        const unit = row.getValue("unit") as string;
-        return unit ? (
-          <span className="text-gray-600">{unit}</span>
-        ) : (
-          <span className="text-gray-400">-</span>
+        const price = parseFloat(row.getValue("pricePerUnit"));
+        const quantity = row.getValue("stockQuantity") as number;
+        const totalValue = price * quantity;
+
+        return (
+          <div className="font-medium text-gray-600">
+            {formatCurrency(totalValue)}
+          </div>
         );
       },
     },
@@ -220,11 +236,10 @@ export const ProductTable = ({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() =>
-                  navigator.clipboard.writeText(product.id.toString())
-                }
+                onClick={() => copyToClipboard(product.code, "Product code")}
               >
-                Copy product ID
+                <Copy className="mr-2 h-4 w-4" />
+                Copy product code
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onEdit(product)}>
@@ -236,7 +251,7 @@ export const ProductTable = ({
                 className="text-red-600 focus:text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete product
+                Archive product
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -317,7 +332,7 @@ export const ProductTable = ({
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search products..."
+            placeholder="Search products by name or code..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="pl-10 bg-white"

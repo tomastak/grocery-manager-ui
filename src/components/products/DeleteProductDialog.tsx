@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Product } from "@/types/product";
-import { Trash2, AlertTriangle } from "lucide-react";
+import { Archive, AlertTriangle, Info } from "lucide-react";
 
 interface DeleteProductDialogProps {
   open: boolean;
@@ -35,65 +35,84 @@ export const DeleteProductDialog = ({
     }).format(amount);
   };
 
+  const totalValue = product.pricePerUnit * product.stockQuantity;
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="sm:max-w-[425px]">
+      <AlertDialogContent className="sm:max-w-[500px]">
         <AlertDialogHeader>
           <div className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full">
+              <Archive className="w-5 h-5 text-orange-600" />
             </div>
             <AlertDialogTitle className="text-lg font-semibold">
-              Delete Product
+              Archive Product
             </AlertDialogTitle>
           </div>
-          <AlertDialogDescription className="text-left space-y-2">
+          <AlertDialogDescription className="text-left space-y-3">
             <p>
-              Are you sure you want to delete this product? This action cannot
-              be undone.
+              Are you sure you want to archive this product? This action will
+              remove it from the active inventory.
             </p>
 
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+            <div className="p-4 bg-gray-50 rounded-lg border">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="font-medium">Product:</span>
-                  <span>{product.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Category:</span>
-                  <span>{product.category}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Price:</span>
-                  <span>{formatCurrency(product.price)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Stock:</span>
-                  <span>
-                    {product.stock} {product.unit || "units"}
+                  <span className="font-medium">Product Code:</span>
+                  <span className="font-mono bg-white px-2 py-1 rounded border text-sm">
+                    {product.code}
                   </span>
                 </div>
-                {product.sku && (
-                  <div className="flex justify-between">
-                    <span className="font-medium">SKU:</span>
-                    <span>{product.sku}</span>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <span className="font-medium">Name:</span>
+                  <span
+                    className="text-right max-w-xs truncate"
+                    title={product.name}
+                  >
+                    {product.name}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Price per Unit:</span>
+                  <span>{formatCurrency(product.pricePerUnit)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Stock Quantity:</span>
+                  <span>{product.stockQuantity}</span>
+                </div>
+                <div className="flex justify-between font-semibold border-t pt-2">
+                  <span>Total Value:</span>
+                  <span>{formatCurrency(totalValue)}</span>
+                </div>
               </div>
             </div>
 
-            {product.stock > 0 && (
-              <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            <div className="space-y-3">
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start space-x-2">
-                  <AlertTriangle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-orange-800">
-                    <strong>Warning:</strong> This product still has{" "}
-                    {product.stock} units in stock. Deleting it will remove all
-                    inventory records.
+                  <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-800">
+                    <strong>Note:</strong> If this product has active orders
+                    (PENDING or PAID), it will be archived but not permanently
+                    deleted. The product can be restored later if needed.
                   </div>
                 </div>
               </div>
-            )}
+
+              {product.stockQuantity > 0 && (
+                <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <AlertTriangle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-orange-800">
+                      <strong>Warning:</strong> This product still has{" "}
+                      {product.stockQuantity} units in stock worth{" "}
+                      {formatCurrency(totalValue)}. Consider transferring or
+                      managing this inventory before archiving.
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -101,17 +120,17 @@ export const DeleteProductDialog = ({
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isLoading}
-            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            className="bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Deleting...</span>
+                <span>Archiving...</span>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <Trash2 className="w-4 h-4" />
-                <span>Delete Product</span>
+                <Archive className="w-4 h-4" />
+                <span>Archive Product</span>
               </div>
             )}
           </AlertDialogAction>

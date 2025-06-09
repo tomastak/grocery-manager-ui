@@ -19,71 +19,59 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Product, CreateProductRequest } from "@/types/product";
+import {
+  Product,
+  CreateProductRequest,
+  UpdateProductRequest,
+} from "@/types/product";
 
-const productSchema = z.object({
-  name: z.string().min(1, "Product name is required").max(100, "Name too long"),
-  category: z.string().min(1, "Category is required"),
-  price: z.number().min(0.01, "Price must be greater than 0"),
-  stock: z.number().int().min(0, "Stock cannot be negative"),
-  description: z.string().optional(),
-  sku: z.string().optional(),
-  barcode: z.string().optional(),
-  unit: z.string().optional(),
-  supplier: z.string().optional(),
-  expiryDate: z.string().optional(),
-  isActive: z.boolean().default(true),
+// Schema based on the exact OpenAPI specification
+const createProductSchema = z.object({
+  code: z
+    .string()
+    .min(1, "Product code is required")
+    .max(50, "Product code must be 50 characters or less")
+    .regex(
+      /^[a-zA-Z0-9_-]+$/,
+      "Product code can only contain letters, numbers, hyphens, and underscores",
+    ),
+  name: z
+    .string()
+    .min(1, "Product name is required")
+    .max(255, "Product name must be 255 characters or less"),
+  stockQuantity: z
+    .number()
+    .int("Stock quantity must be a whole number")
+    .min(0, "Stock quantity cannot be negative"),
+  pricePerUnit: z.number().min(0.01, "Price per unit must be at least $0.01"),
 });
 
-type ProductFormData = z.infer<typeof productSchema>;
+const updateProductSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Product name is required")
+    .max(255, "Product name must be 255 characters or less"),
+  stockQuantity: z
+    .number()
+    .int("Stock quantity must be a whole number")
+    .min(0, "Stock quantity cannot be negative"),
+  pricePerUnit: z.number().min(0.01, "Price per unit must be at least $0.01"),
+});
+
+type CreateProductFormData = z.infer<typeof createProductSchema>;
+type UpdateProductFormData = z.infer<typeof updateProductSchema>;
 
 interface ProductFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateProductRequest) => Promise<void>;
+  onSubmit: (
+    data: CreateProductRequest | UpdateProductRequest,
+  ) => Promise<void>;
   product?: Product | null;
   isLoading?: boolean;
 }
-
-const categories = [
-  "Fruits & Vegetables",
-  "Dairy & Eggs",
-  "Meat & Seafood",
-  "Bakery",
-  "Pantry",
-  "Frozen",
-  "Beverages",
-  "Snacks",
-  "Health & Beauty",
-  "Household",
-  "Other",
-];
-
-const units = [
-  "pcs",
-  "kg",
-  "g",
-  "lb",
-  "oz",
-  "L",
-  "ml",
-  "gal",
-  "pack",
-  "box",
-  "can",
-  "bottle",
-];
 
 export const ProductForm = ({
   open,
@@ -93,59 +81,46 @@ export const ProductForm = ({
   isLoading,
 }: ProductFormProps) => {
   const isEdit = !!product;
+  const schema = isEdit ? updateProductSchema : createProductSchema;
 
-  const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: "",
-      category: "",
-      price: 0,
-      stock: 0,
-      description: "",
-      sku: "",
-      barcode: "",
-      unit: "",
-      supplier: "",
-      expiryDate: "",
-      isActive: true,
-    },
+  const form = useForm<CreateProductFormData | UpdateProductFormData>({
+    resolver: zodResolver(schema),
+    defaultValues: isEdit
+      ? {
+          name: "",
+          stockQuantity: 0,
+          pricePerUnit: 0,
+        }
+      : {
+          code: "",
+          name: "",
+          stockQuantity: 0,
+          pricePerUnit: 0,
+        },
   });
 
   useEffect(() => {
     if (product) {
       form.reset({
         name: product.name,
-        category: product.category,
-        price: product.price,
-        stock: product.stock,
-        description: product.description || "",
-        sku: product.sku || "",
-        barcode: product.barcode || "",
-        unit: product.unit || "",
-        supplier: product.supplier || "",
-        expiryDate: product.expiryDate || "",
-        isActive: product.isActive ?? true,
+        stockQuantity: product.stockQuantity,
+        pricePerUnit: product.pricePerUnit,
       });
     } else {
       form.reset({
+        code: "",
         name: "",
-        category: "",
-        price: 0,
-        stock: 0,
-        description: "",
-        sku: "",
-        barcode: "",
-        unit: "",
-        supplier: "",
-        expiryDate: "",
-        isActive: true,
+        stockQuantity: 0,
+        pricePerUnit: 0,
       });
     }
   }, [product, form]);
 
-  const handleSubmit = async (data: ProductFormData) => {
+  const handleSubmit = async (
+    data: CreateProductFormData | UpdateProductFormData,
+  ) => {
     try {
-      await onSubmit(data);
+      await onSubmit(data as CreateProductRequest | UpdateProductRequest);
       onOpenChange(false);
       form.reset();
     } catch (error) {
@@ -155,7 +130,7 @@ export const ProductForm = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             {isEdit ? "Edit Product" : "Add New Product"}
@@ -172,20 +147,79 @@ export const ProductForm = ({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-6"
           >
+            {!isEdit && (
+              <FormField
+                control={form.control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Code *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter unique product code (e.g., APPLE001)"
+                        {...field}
+                        className="bg-white font-mono"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Unique identifier for the product. Use letters, numbers,
+                      hyphens, and underscores only.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Product Name *</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter product name"
+                      {...field}
+                      className="bg-white"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Descriptive name for the product (max 255 characters)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="name"
+                name="pricePerUnit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Product Name *</FormLabel>
+                    <FormLabel>Price per Unit *</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter product name"
-                        {...field}
-                        className="bg-white"
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                          $
+                        </span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          placeholder="0.00"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                          className="bg-white pl-8"
+                        />
+                      </div>
                     </FormControl>
+                    <FormDescription>
+                      Price in USD (minimum $0.01)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -193,61 +227,14 @@ export const ProductForm = ({
 
               <FormField
                 control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value) || 0)
-                        }
-                        className="bg-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="stock"
+                name="stockQuantity"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Stock Quantity *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
+                        min="0"
                         placeholder="0"
                         {...field}
                         onChange={(e) =>
@@ -256,146 +243,42 @@ export const ProductForm = ({
                         className="bg-white"
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="sku"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>SKU</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Product SKU"
-                        {...field}
-                        className="bg-white"
-                      />
-                    </FormControl>
                     <FormDescription>
-                      Stock Keeping Unit for inventory tracking
+                      Current inventory quantity
                     </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="unit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unit</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Select unit" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {units.map((unit) => (
-                          <SelectItem key={unit} value={unit}>
-                            {unit}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="barcode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Barcode</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Product barcode"
-                        {...field}
-                        className="bg-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="supplier"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Supplier</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Supplier name"
-                        {...field}
-                        className="bg-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="expiryDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Expiry Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} className="bg-white" />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Product description..."
-                      className="resize-none bg-white"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="isActive"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-gray-50">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Active Product</FormLabel>
-                    <FormDescription>
-                      Inactive products won't be visible in the store
-                    </FormDescription>
+            {isEdit && product && (
+              <div className="p-4 bg-gray-50 rounded-lg border">
+                <div className="space-y-2 text-sm">
+                  <div className="font-medium text-gray-700">
+                    Current Product:
                   </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Code:</span>
+                    <span className="font-mono bg-white px-2 py-1 rounded border text-xs">
+                      {product.code}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Current Name:</span>
+                    <span>{product.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Current Price:</span>
+                    <span>${product.pricePerUnit.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Current Stock:</span>
+                    <span>{product.stockQuantity}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <DialogFooter className="gap-2">
               <Button

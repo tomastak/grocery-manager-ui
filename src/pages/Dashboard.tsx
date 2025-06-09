@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Plus,
   Package,
@@ -21,6 +23,7 @@ import {
   DollarSign,
   Refresh,
   AlertCircle,
+  Archive,
 } from "lucide-react";
 import {
   useProducts,
@@ -28,17 +31,22 @@ import {
   useUpdateProduct,
   useDeleteProduct,
 } from "@/hooks/useProducts";
-import { Product, CreateProductRequest } from "@/types/product";
+import {
+  Product,
+  CreateProductRequest,
+  UpdateProductRequest,
+} from "@/types/product";
 import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
+  const [onlyActive, setOnlyActive] = useState(true);
   const {
     data: products = [],
     isLoading,
     isError,
     error,
     refetch,
-  } = useProducts();
+  } = useProducts(onlyActive);
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
   const deleteProductMutation = useDeleteProduct();
@@ -48,17 +56,17 @@ export default function Dashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
-  // Calculate statistics
+  // Calculate statistics based on the actual API fields
   const totalProducts = products.length;
   const totalValue = products.reduce(
-    (sum, product) => sum + product.price * product.stock,
+    (sum, product) => sum + product.pricePerUnit * product.stockQuantity,
     0,
   );
   const lowStockCount = products.filter(
-    (product) => product.stock <= 10,
+    (product) => product.stockQuantity <= 10 && product.stockQuantity > 0,
   ).length;
   const outOfStockCount = products.filter(
-    (product) => product.stock === 0,
+    (product) => product.stockQuantity === 0,
   ).length;
 
   const formatCurrency = (amount: number) => {
@@ -72,9 +80,12 @@ export default function Dashboard() {
     await createProductMutation.mutateAsync(data);
   };
 
-  const handleUpdateProduct = async (data: CreateProductRequest) => {
+  const handleUpdateProduct = async (data: UpdateProductRequest) => {
     if (!editingProduct) return;
-    await updateProductMutation.mutateAsync({ id: editingProduct.id, ...data });
+    await updateProductMutation.mutateAsync({
+      code: editingProduct.code,
+      ...data,
+    } as UpdateProductRequest & { code: string });
     setEditingProduct(null);
   };
 
@@ -90,7 +101,7 @@ export default function Dashboard() {
 
   const confirmDelete = async () => {
     if (!productToDelete) return;
-    await deleteProductMutation.mutateAsync(productToDelete.id);
+    await deleteProductMutation.mutateAsync(productToDelete.code);
     setProductToDelete(null);
     setDeleteDialogOpen(false);
   };
@@ -141,13 +152,31 @@ export default function Dashboard() {
               Manage your store's product catalog and inventory levels
             </p>
           </div>
-          <Button
-            onClick={() => setProductFormOpen(true)}
-            className="bg-gradient-to-r from-grocery-500 to-fresh-500 hover:from-grocery-600 hover:to-fresh-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Product
-          </Button>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show-archived"
+                checked={!onlyActive}
+                onCheckedChange={(checked) => setOnlyActive(!checked)}
+              />
+              <Label htmlFor="show-archived" className="text-sm text-gray-600">
+                Show archived products
+              </Label>
+              {!onlyActive && (
+                <Badge variant="secondary" className="text-xs">
+                  <Archive className="w-3 h-3 mr-1" />
+                  Including archived
+                </Badge>
+              )}
+            </div>
+            <Button
+              onClick={() => setProductFormOpen(true)}
+              className="bg-gradient-to-r from-grocery-500 to-fresh-500 hover:from-grocery-600 hover:to-fresh-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Product
+            </Button>
+          </div>
         </div>
 
         {/* Statistics Cards */}
@@ -164,7 +193,7 @@ export default function Dashboard() {
                 {totalProducts}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Active inventory items
+                {onlyActive ? "Active" : "Active + archived"} inventory items
               </p>
             </CardContent>
           </Card>
@@ -231,8 +260,8 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Alerts for stock issues */}
-        {(lowStockCount > 0 || outOfStockCount > 0) && (
+        {/* Alerts for stock issues (only for active products) */}
+        {onlyActive && (lowStockCount > 0 || outOfStockCount > 0) && (
           <div className="space-y-3">
             {outOfStockCount > 0 && (
               <Alert variant="destructive">
@@ -267,6 +296,7 @@ export default function Dashboard() {
                 </CardTitle>
                 <CardDescription>
                   Manage your product inventory with real-time updates
+                  {!onlyActive && " (including archived products)"}
                 </CardDescription>
               </div>
               <Button

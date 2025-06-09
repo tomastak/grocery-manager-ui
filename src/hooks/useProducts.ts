@@ -8,20 +8,20 @@ import {
 import { apiClient } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 
-export const useProducts = () => {
+export const useProducts = (onlyActive: boolean = true) => {
   return useQuery({
-    queryKey: ["products"],
-    queryFn: () => apiClient.getProducts(),
+    queryKey: ["products", onlyActive],
+    queryFn: () => apiClient.getProducts(onlyActive),
     refetchInterval: 30000, // Refetch every 30 seconds for live updates
     staleTime: 10000, // Consider data stale after 10 seconds
   });
 };
 
-export const useProduct = (id: number) => {
+export const useProduct = (code: string) => {
   return useQuery({
-    queryKey: ["product", id],
-    queryFn: () => apiClient.getProduct(id),
-    enabled: !!id,
+    queryKey: ["product", code],
+    queryFn: () => apiClient.getProduct(code),
+    enabled: !!code,
   });
 };
 
@@ -35,13 +35,21 @@ export const useCreateProduct = () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast({
         title: "Product created",
-        description: `${newProduct.name} has been successfully created`,
+        description: `${newProduct.name} (${newProduct.code}) has been successfully created`,
       });
     },
     onError: (error: ApiError) => {
+      let errorMessage = "An unexpected error occurred";
+
+      if (error.status === 409) {
+        errorMessage = "A product with this code already exists";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Failed to create product",
-        description: error.message || "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -52,12 +60,15 @@ export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...product }: UpdateProductRequest) =>
-      apiClient.updateProduct(id, product),
+    mutationFn: ({
+      code,
+      ...product
+    }: UpdateProductRequest & { code: string }) =>
+      apiClient.updateProduct(code, product),
     onSuccess: (updatedProduct) => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({
-        queryKey: ["product", updatedProduct.id],
+        queryKey: ["product", updatedProduct.code],
       });
       toast({
         title: "Product updated",
@@ -65,9 +76,19 @@ export const useUpdateProduct = () => {
       });
     },
     onError: (error: ApiError) => {
+      let errorMessage = "An unexpected error occurred";
+
+      if (error.status === 404) {
+        errorMessage = "Product not found";
+      } else if (error.status === 409) {
+        errorMessage = "Cannot update this product due to a conflict";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Failed to update product",
-        description: error.message || "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -78,18 +99,31 @@ export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => apiClient.deleteProduct(id),
+    mutationFn: (code: string) => apiClient.deleteProduct(code),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast({
-        title: "Product deleted",
-        description: "Product has been successfully deleted",
+        title: "Product archived",
+        description: "Product has been successfully archived",
       });
     },
     onError: (error: ApiError) => {
+      let errorMessage = "An unexpected error occurred";
+
+      if (error.status === 409) {
+        errorMessage =
+          "Cannot delete product because it has active orders. The product will be archived instead.";
+        // Still invalidate queries since the product might have been archived
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+      } else if (error.status === 404) {
+        errorMessage = "Product not found";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Failed to delete product",
-        description: error.message || "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     },
