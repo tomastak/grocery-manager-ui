@@ -396,8 +396,11 @@ export const ProductTable = ({
       </div>
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} of{" "}
-          {table.getCoreRowModel().rows.length} product(s) total.
+          <span className="ml-5">
+            {table.getFilteredRowModel().rows.length}
+          </span>{" "}
+          of <span className="ml-1">{table.getCoreRowModel().rows.length}</span>{" "}
+          product(s) total.
         </div>
         <div className="space-x-2">
           <Button
