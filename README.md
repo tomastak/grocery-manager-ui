@@ -2,9 +2,17 @@
 
 A modern, production-ready React application for managing grocery store inventory with real-time updates and a beautiful UI.
 
+## Preview
+### Product Catalog
 ![Product Catalog](docs/images/product-catalog.png)
+
+### Crete Product
 ![Create Product](docs/images/add-product.png)
+
+### Update Product
 ![Update Product](docs/images/update-product.png)
+
+### Delete Product
 ![Delete Product](docs/images/delete-product.png)
 
 
