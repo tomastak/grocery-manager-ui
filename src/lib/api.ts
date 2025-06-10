@@ -73,6 +73,17 @@ class ApiClient {
           // If response is not JSON, create error from status
         }
 
+        // Handle CORS preflight issues specifically
+        if (response.status === 0 || response.type === "opaque") {
+          throw {
+            status: 0,
+            error: "CORS Error",
+            message:
+              "CORS error - likely due to preflight failure. Check if your backend allows OPTIONS requests without authentication.",
+            timestamp: new Date().toISOString(),
+          } as ApiError;
+        }
+
         // Handle SpringBoot error format specifically
         if (response.status === 401) {
           const error: ApiError = {
@@ -110,11 +121,12 @@ class ApiClient {
       return await response.json();
     } catch (error) {
       if (error instanceof Error && error.name === "TypeError") {
-        // Network error
+        // Network error - could be CORS issue
         throw {
           status: 0,
           error: "NetworkError",
-          message: "Network error. Please check your connection and try again.",
+          message:
+            "Network error. This could be a CORS issue - check if your backend allows OPTIONS requests, or verify the server is running.",
           timestamp: new Date().toISOString(),
         } as ApiError;
       }
@@ -204,6 +216,16 @@ class ApiClient {
     } catch (error) {
       // Remove invalid credentials on failure
       localStorage.removeItem("auth_credentials");
+
+      // Enhanced error messages for common CORS issues
+      if ((error as ApiError).status === 0) {
+        throw {
+          status: 0,
+          error: "Connection Failed",
+          message: `Cannot connect to API at ${this.baseURL}. This might be a CORS issue - ensure your SpringBoot backend allows OPTIONS requests without authentication, or verify the server is running.`,
+          timestamp: new Date().toISOString(),
+        } as ApiError;
+      }
 
       // Re-throw with more specific message for auth failures
       if ((error as ApiError).status === 401) {
