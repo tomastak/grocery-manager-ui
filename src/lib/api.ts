@@ -10,9 +10,18 @@ import {
 } from "@/types/product";
 import { mockApiClient } from "./mockApi";
 
-// API base URL from OpenAPI spec
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+// Get API base URL from runtime config or environment variable
+const getApiBaseUrl = (): string => {
+  // Check if running in browser and runtime config is available
+  if (typeof window !== "undefined" && (window as any).ENV) {
+    return (window as any).ENV.VITE_API_BASE_URL || "http://localhost:8080";
+  }
+
+  // Fallback to build-time environment variable
+  return import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Check if we're in development mode without a backend
 const isDevelopmentMode =
@@ -279,6 +288,11 @@ class ApiClient {
     } catch (error) {
       throw { status: "error", message: "API not accessible" };
     }
+  }
+
+  // Get current API base URL for debugging
+  getBaseUrl(): string {
+    return this.baseURL;
   }
 }
 
