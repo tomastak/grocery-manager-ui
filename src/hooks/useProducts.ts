@@ -78,7 +78,13 @@ export const useUpdateProduct = () => {
     onError: (error: ApiError) => {
       let errorMessage = "An unexpected error occurred";
 
-      if (error.status === 404) {
+      if (error.status === 0) {
+        errorMessage =
+          "Network/CORS error. Check if your backend allows PUT requests and OPTIONS preflight.";
+      } else if (error.status === 403) {
+        errorMessage =
+          "Forbidden. This might be a CORS issue with PUT requests. Check your backend CORS configuration.";
+      } else if (error.status === 404) {
         errorMessage = "Product not found";
       } else if (error.status === 409) {
         errorMessage = "Cannot update this product due to a conflict";
