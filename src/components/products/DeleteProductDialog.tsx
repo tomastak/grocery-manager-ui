@@ -285,7 +285,7 @@ export const DeleteProductDialog = ({
                       }
                     >
                       {finalAction.action === "delete" && "Permanent"}
-                      {finalAction.action === "archive" && "Reversible"}
+                      {/*{finalAction.action === "archive" && "Reversible"}*/}
                       {finalAction.action === "none" && "Blocked"}
                     </Badge>
                   </div>
