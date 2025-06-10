@@ -44,13 +44,17 @@ export const useAuthHook = () => {
 
       if (apiError.status === 401) {
         errorTitle = "Authentication Failed";
-        errorDescription = apiError.message || "Invalid credentials. Please check your username and password.";
+        errorDescription =
+          apiError.message ||
+          "Invalid credentials. Please check your username and password.";
       } else if (apiError.status === 0) {
         errorTitle = "Connection Failed";
-        errorDescription = "Cannot connect to the API server. Please check if the server is running and the URL is correct.";
+        errorDescription =
+          "Cannot connect to the API server. Please check if the server is running and the URL is correct.";
       } else if (apiError.status >= 500) {
         errorTitle = "Server Error";
-        errorDescription = "The server encountered an error. Please try again later.";
+        errorDescription =
+          "The server encountered an error. Please try again later.";
       } else {
         errorDescription = apiError.message || "An unexpected error occurred";
       }
@@ -61,7 +65,6 @@ export const useAuthHook = () => {
         variant: "destructive",
       });
       throw error;
-    }
     } finally {
       setIsLoading(false);
     }
