@@ -33,6 +33,10 @@ import {
   useDeleteProduct,
 } from "@/hooks/useProducts";
 import {
+  useProductOrderStatus,
+  useDeletionAction,
+} from "@/hooks/useProductOrders";
+import {
   Product,
   CreateProductRequest,
   UpdateProductRequest,
@@ -56,6 +60,16 @@ export default function Dashboard() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+
+  // Use the same logic as DeleteProductDialog for deletion action
+  const {
+    hasActiveOrders,
+    hasFinishedOrders,
+    isLoading: isCheckingOrders,
+    isError: orderCheckError,
+  } = useProductOrderStatus(productToDelete?.code || "", deleteDialogOpen && !!productToDelete);
+
+  const deletionAction = useDeletionAction(hasActiveOrders, hasFinishedOrders);
 
   // Calculate statistics based on the actual API fields
   const totalProducts = products.length;
@@ -91,6 +105,7 @@ export default function Dashboard() {
   };
 
   const handleEditProduct = (product: Product) => {
+    if (product.archived) return; // Prevent editing archived products
     setEditingProduct(product);
     setProductFormOpen(true);
   };
@@ -102,7 +117,11 @@ export default function Dashboard() {
 
   const confirmDelete = async () => {
     if (!productToDelete) return;
-    await deleteProductMutation.mutateAsync(productToDelete.code);
+    // Use the action determined by the dialog logic
+    await deleteProductMutation.mutateAsync({
+      code: productToDelete.code,
+      action: deletionAction.action,
+    });
     setProductToDelete(null);
     setDeleteDialogOpen(false);
   };

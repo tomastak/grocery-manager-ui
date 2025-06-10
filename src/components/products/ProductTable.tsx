@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { Product } from "@/types/product";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProductTableProps {
   products: Product[];
@@ -242,16 +243,23 @@ export const ProductTable = ({
                 Copy product code
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onEdit(product)}>
+              <DropdownMenuItem
+                onClick={() => !product.archived && onEdit(product)}
+                className={`${product.archived ? "opacity-50 pointer-events-none" : ""}`}
+                disabled={product.archived}
+              >
                 <Edit2 className="mr-2 h-4 w-4" />
                 Edit product
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => onDelete(product)}
-                className="text-red-600 focus:text-red-600"
+                onClick={() => !product.archived && onDelete(product)}
+                className={`text-red-600 focus:text-red-600 ${
+                  product.archived ? "opacity-50 pointer-events-none" : ""
+                }`}
+                disabled={product.archived}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Archive product
+                Delete product
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -367,22 +375,50 @@ export const ProductTable = ({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="hover:bg-gray-50/50 transition-colors"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-4">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const product = row.original;
+                const archivedRow = (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={
+                      product.archived
+                        ? "bg-gray-200 text-gray-400 opacity-70"
+                        : "hover:bg-gray-50/50 transition-colors"
+                    }
+                    style={
+                      product.archived
+                        ? {
+                            filter: "grayscale(1)",
+                            cursor: "not-allowed",
+                          }
+                        : {}
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="py-4">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+                if (product.archived) {
+                  return (
+                    <Tooltip key={row.id}>
+                      <TooltipTrigger asChild>
+                        {archivedRow}
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        Archived product
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+                return archivedRow;
+              })
             ) : (
               <TableRow>
                 <TableCell

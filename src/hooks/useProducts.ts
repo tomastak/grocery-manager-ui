@@ -105,15 +105,23 @@ export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (code: string) => apiClient.deleteProduct(code),
-    onSuccess: () => {
+    // Accept an object with code and action
+    mutationFn: ({ code }: { code: string; action: "archive" | "delete" }) =>
+      apiClient.deleteProduct(code),
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast({
-        title: "Product archived",
-        description: "Product has been successfully archived",
+        title:
+          variables.action === "delete"
+            ? "Product deleted"
+            : "Product archived",
+        description:
+          variables.action === "delete"
+            ? "Product has been successfully deleted"
+            : "Product has been successfully archived",
       });
     },
-    onError: (error: ApiError) => {
+    onError: (error: ApiError, variables) => {
       let errorMessage = "An unexpected error occurred";
 
       if (error.status === 409) {
@@ -128,7 +136,10 @@ export const useDeleteProduct = () => {
       }
 
       toast({
-        title: "Failed to delete product",
+        title:
+          variables?.action === "delete"
+            ? "Failed to delete product"
+            : "Failed to archive product",
         description: errorMessage,
         variant: "destructive",
       });

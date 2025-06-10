@@ -54,6 +54,18 @@ export const DeleteProductDialog = ({
 
   if (!product) return null;
 
+  // If product is archived, override action to block deletion
+  const isArchived = product.archived;
+  const finalAction = isArchived
+    ? {
+        ...deletionAction,
+        action: "none" as const,
+        reason: "Archived products cannot be deleted or archived.",
+        actionButtonText: "Cannot Delete",
+        actionButtonDisabled: true,
+      }
+    : deletionAction;
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("cs-CZ", {
       style: "currency",
@@ -64,7 +76,7 @@ export const DeleteProductDialog = ({
   const totalValue = product.pricePerUnit * product.stockQuantity;
 
   const getActionIcon = () => {
-    switch (deletionAction.action) {
+    switch (finalAction.action) {
       case "delete":
         return <Trash2 className="w-5 h-5 text-red-600" />;
       case "archive":
@@ -75,7 +87,7 @@ export const DeleteProductDialog = ({
   };
 
   const getActionColor = () => {
-    switch (deletionAction.action) {
+    switch (finalAction.action) {
       case "delete":
         return "bg-red-100";
       case "archive":
@@ -86,7 +98,7 @@ export const DeleteProductDialog = ({
   };
 
   const getActionTitle = () => {
-    switch (deletionAction.action) {
+    switch (finalAction.action) {
       case "delete":
         return "Delete Product";
       case "archive":
@@ -236,9 +248,9 @@ export const DeleteProductDialog = ({
           {!isCheckingOrders && !orderCheckError && (
             <div
               className={`p-4 rounded-lg border ${
-                deletionAction.action === "delete"
+                finalAction.action === "delete"
                   ? "bg-red-50 border-red-200"
-                  : deletionAction.action === "archive"
+                  : finalAction.action === "archive"
                     ? "bg-orange-50 border-orange-200"
                     : "bg-gray-50 border-gray-200"
               }`}
@@ -246,9 +258,9 @@ export const DeleteProductDialog = ({
               <div className="flex items-start space-x-3">
                 <div
                   className={`p-2 rounded-full ${
-                    deletionAction.action === "delete"
+                    finalAction.action === "delete"
                       ? "bg-red-100"
-                      : deletionAction.action === "archive"
+                      : finalAction.action === "archive"
                         ? "bg-orange-100"
                         : "bg-gray-100"
                   }`}
@@ -258,35 +270,35 @@ export const DeleteProductDialog = ({
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
                     <h4 className="font-medium">
-                      {deletionAction.action === "delete" &&
+                      {finalAction.action === "delete" &&
                         "Permanent Deletion"}
-                      {deletionAction.action === "archive" && "Archive Only"}
-                      {deletionAction.action === "none" && "Action Blocked"}
+                      {finalAction.action === "archive" && "Archive Only"}
+                      {finalAction.action === "none" && "Action Blocked"}
                     </h4>
                     <Badge
                       variant={
-                        deletionAction.action === "delete"
+                        finalAction.action === "delete"
                           ? "destructive"
-                          : deletionAction.action === "archive"
+                          : finalAction.action === "archive"
                             ? "secondary"
                             : "outline"
                       }
                     >
-                      {deletionAction.action === "delete" && "Permanent"}
-                      {deletionAction.action === "archive" && "Reversible"}
-                      {deletionAction.action === "none" && "Blocked"}
+                      {finalAction.action === "delete" && "Permanent"}
+                      {finalAction.action === "archive" && "Reversible"}
+                      {finalAction.action === "none" && "Blocked"}
                     </Badge>
                   </div>
                   <p
                     className={`text-sm ${
-                      deletionAction.action === "delete"
+                      finalAction.action === "delete"
                         ? "text-red-700"
-                        : deletionAction.action === "archive"
+                        : finalAction.action === "archive"
                           ? "text-orange-700"
                           : "text-gray-700"
                     }`}
                   >
-                    {deletionAction.reason}
+                    {finalAction.reason}
                   </p>
                 </div>
               </div>
@@ -294,7 +306,7 @@ export const DeleteProductDialog = ({
           )}
 
           {/* Stock Warning */}
-          {product.stockQuantity > 0 && deletionAction.canDelete && (
+          {product.stockQuantity > 0 && finalAction.canDelete && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -315,13 +327,13 @@ export const DeleteProductDialog = ({
             onClick={onConfirm}
             disabled={
               isLoading ||
-              deletionAction.actionButtonDisabled ||
+              finalAction.actionButtonDisabled ||
               isCheckingOrders
             }
             className={
-              deletionAction.action === "delete"
+              finalAction.action === "delete"
                 ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                : deletionAction.action === "archive"
+                : finalAction.action === "archive"
                   ? "bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
                   : "bg-gray-600 hover:bg-gray-700 focus:ring-gray-600"
             }
@@ -339,7 +351,7 @@ export const DeleteProductDialog = ({
             ) : (
               <div className="flex items-center space-x-2">
                 {getActionIcon()}
-                <span>{deletionAction.actionButtonText}</span>
+                <span>{finalAction.actionButtonText}</span>
               </div>
             )}
           </AlertDialogAction>

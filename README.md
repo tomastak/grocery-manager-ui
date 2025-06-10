@@ -6,7 +6,7 @@ A modern, production-ready React application for managing grocery store inventor
 
 - **🔐 Authentication**: Basic Auth with session management
 - **📊 Real-time Dashboard**: Live inventory with auto-refresh
-- **🛍️ Complete CRUD**: Create, Read, Update, Archive products
+- **🛍️ Complete CRUD**: Create, Read, Update, Delete products
 - **🎨 Modern Design**: Fresh grocery-themed UI with Tailwind CSS
 - **⚡ Live Updates**: Real-time table updates without page refresh
 - **📱 Responsive**: Works on all screen sizes
@@ -95,7 +95,7 @@ This application is designed to work with your SpringBoot API using the followin
 - `GET /api/v1/products/{code}` - Get product by code
 - `POST /api/v1/products` - Create new product
 - `PUT /api/v1/products/{code}` - Update product
-- `DELETE /api/v1/products/{code}` - Archive product
+- `DELETE /api/v1/products/{code}` - Delete product
 
 ### Authentication
 

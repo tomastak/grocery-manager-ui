@@ -142,6 +142,12 @@ export const ProductForm = ({
           </DialogDescription>
         </DialogHeader>
 
+        {isEdit && product && product.archived && (
+          <div className="p-3 mb-2 bg-gray-100 border border-gray-300 rounded text-gray-500 text-sm">
+            Archived products cannot be edited.
+          </div>
+        )}
+
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
@@ -291,7 +297,7 @@ export const ProductForm = ({
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || (isEdit && product && product.archived)}
                 className="bg-gradient-to-r from-grocery-500 to-fresh-500 hover:from-grocery-600 hover:to-fresh-600"
               >
                 {isLoading

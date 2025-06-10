@@ -16,7 +16,7 @@ docker build -t freshmart-frontend:latest .
 docker run -d \
   --name freshmart-app \
   -p 3000:80 \
-  -e VITE_API_BASE_URL=https://your-backend-api.com \
+  -e VITE_API_BASE_URL=http://localhost:8080 \
   freshmart-frontend:latest
 ```
 

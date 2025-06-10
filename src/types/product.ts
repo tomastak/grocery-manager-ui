@@ -5,6 +5,7 @@ export interface Product {
   name: string;
   stockQuantity: number;
   pricePerUnit: number;
+  archived: boolean; // <-- added
 }
 
 export interface CreateProductRequest {

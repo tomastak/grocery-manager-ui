@@ -62,9 +62,6 @@ export const Header = () => {
                     <p className="text-sm font-medium leading-none">
                       {user?.username || "User"}
                     </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email || `${user?.username}@freshmart.com`}
-                    </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
