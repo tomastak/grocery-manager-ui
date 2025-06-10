@@ -38,12 +38,30 @@ export const useAuthHook = () => {
       });
     } catch (error) {
       const apiError = error as ApiError;
+
+      let errorTitle = "Login Failed";
+      let errorDescription = "Invalid username or password";
+
+      if (apiError.status === 401) {
+        errorTitle = "Authentication Failed";
+        errorDescription = apiError.message || "Invalid credentials. Please check your username and password.";
+      } else if (apiError.status === 0) {
+        errorTitle = "Connection Failed";
+        errorDescription = "Cannot connect to the API server. Please check if the server is running and the URL is correct.";
+      } else if (apiError.status >= 500) {
+        errorTitle = "Server Error";
+        errorDescription = "The server encountered an error. Please try again later.";
+      } else {
+        errorDescription = apiError.message || "An unexpected error occurred";
+      }
+
       toast({
-        title: "Login Failed",
-        description: apiError.message || "Invalid username or password",
+        title: errorTitle,
+        description: errorDescription,
         variant: "destructive",
       });
       throw error;
+    }
     } finally {
       setIsLoading(false);
     }

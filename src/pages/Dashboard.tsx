@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { ProductTable } from "@/components/products/ProductTable";
 import { ProductForm } from "@/components/products/ProductForm";
 import { DeleteProductDialog } from "@/components/products/DeleteProductDialog";
+import { ApiDebugPanel } from "@/components/debug/ApiDebugPanel";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -337,6 +338,9 @@ export default function Dashboard() {
         product={productToDelete}
         isLoading={deleteProductMutation.isPending}
       />
+
+      {/* API Debug Panel (only in development) */}
+      {import.meta.env.DEV && <ApiDebugPanel />}
     </div>
   );
 }
