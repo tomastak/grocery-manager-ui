@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,8 +9,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Product } from "@/types/product";
-import { Archive, AlertTriangle, Info } from "lucide-react";
+import {
+  Archive,
+  AlertTriangle,
+  Info,
+  Trash2,
+  ShoppingCart,
+  Ban,
+  CheckCircle2,
+} from "lucide-react";
+import {
+  useProductOrderStatus,
+  useDeletionAction,
+} from "@/hooks/useProductOrders";
 
 interface DeleteProductDialogProps {
   open: boolean;
@@ -26,6 +41,17 @@ export const DeleteProductDialog = ({
   product,
   isLoading,
 }: DeleteProductDialogProps) => {
+  // Get order status for the product
+  const {
+    hasActiveOrders,
+    hasFinishedOrders,
+    isLoading: isCheckingOrders,
+    isError: orderCheckError,
+  } = useProductOrderStatus(product?.code || "", open && !!product);
+
+  // Determine what action can be taken
+  const deletionAction = useDeletionAction(hasActiveOrders, hasFinishedOrders);
+
   if (!product) return null;
 
   const formatCurrency = (amount: number) => {
@@ -37,25 +63,64 @@ export const DeleteProductDialog = ({
 
   const totalValue = product.pricePerUnit * product.stockQuantity;
 
+  const getActionIcon = () => {
+    switch (deletionAction.action) {
+      case "delete":
+        return <Trash2 className="w-5 h-5 text-red-600" />;
+      case "archive":
+        return <Archive className="w-5 h-5 text-orange-600" />;
+      case "none":
+        return <Ban className="w-5 h-5 text-gray-600" />;
+    }
+  };
+
+  const getActionColor = () => {
+    switch (deletionAction.action) {
+      case "delete":
+        return "bg-red-100";
+      case "archive":
+        return "bg-orange-100";
+      case "none":
+        return "bg-gray-100";
+    }
+  };
+
+  const getActionTitle = () => {
+    switch (deletionAction.action) {
+      case "delete":
+        return "Delete Product";
+      case "archive":
+        return "Archive Product";
+      case "none":
+        return "Cannot Delete Product";
+    }
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="sm:max-w-[500px]">
+      <AlertDialogContent className="sm:max-w-[600px]">
         <AlertDialogHeader>
           <div className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full">
-              <Archive className="w-5 h-5 text-orange-600" />
+            <div
+              className={`flex items-center justify-center w-10 h-10 ${getActionColor()} rounded-full`}
+            >
+              {getActionIcon()}
             </div>
             <AlertDialogTitle className="text-lg font-semibold">
-              Archive Product
+              {getActionTitle()}
             </AlertDialogTitle>
           </div>
           <AlertDialogDescription className="text-left">
-            Are you sure you want to archive this product? This action will
-            remove it from the active inventory.
+            {isCheckingOrders
+              ? "Checking product orders to determine available actions..."
+              : orderCheckError
+                ? "Error checking product orders. Please try again."
+                : "Review the product details and order status below."}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="space-y-4 px-6">
+          {/* Product Details */}
           <div className="p-4 bg-gray-50 rounded-lg border">
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -88,53 +153,193 @@ export const DeleteProductDialog = ({
             </div>
           </div>
 
+          {/* Order Status Section */}
           <div className="space-y-3">
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start space-x-2">
-                <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800">
-                  <strong>Note:</strong>
-                  <p>
-                    If this product has active orders (PENDING or PAID), it will
-                    be archived but not permanently deleted.
-                  </p>
-                </div>
-              </div>
+            <div className="flex items-center space-x-2">
+              <ShoppingCart className="w-4 h-4" />
+              <span className="font-medium">Order Status</span>
             </div>
 
-            {product.stockQuantity > 0 && (
-              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            {isCheckingOrders ? (
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-full" />
+              </div>
+            ) : orderCheckError ? (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                 <div className="flex items-start space-x-2">
-                  <AlertTriangle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-orange-800">
-                    <strong>Warning:</strong> This product still has{" "}
-                    {product.stockQuantity} units in stock worth{" "}
-                    {formatCurrency(totalValue)}. Consider transferring or
-                    managing this inventory before archiving.
+                  <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-red-800">
+                    <strong>Error:</strong> Could not check order status. Please
+                    try again.
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {/* Active Orders Status */}
+                <div
+                  className={`p-3 rounded-lg border ${hasActiveOrders ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}
+                >
+                  <div className="flex items-center space-x-2">
+                    {hasActiveOrders ? (
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                    ) : (
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    )}
+                    <div className="text-sm">
+                      <div className="font-medium">Active Orders</div>
+                      <div
+                        className={
+                          hasActiveOrders ? "text-red-700" : "text-green-700"
+                        }
+                      >
+                        {hasActiveOrders
+                          ? "Has active orders"
+                          : "No active orders"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Finished Orders Status */}
+                <div
+                  className={`p-3 rounded-lg border ${hasFinishedOrders ? "bg-orange-50 border-orange-200" : "bg-green-50 border-green-200"}`}
+                >
+                  <div className="flex items-center space-x-2">
+                    {hasFinishedOrders ? (
+                      <Info className="w-4 h-4 text-orange-600" />
+                    ) : (
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    )}
+                    <div className="text-sm">
+                      <div className="font-medium">Finished Orders</div>
+                      <div
+                        className={
+                          hasFinishedOrders
+                            ? "text-orange-700"
+                            : "text-green-700"
+                        }
+                      >
+                        {hasFinishedOrders
+                          ? "Has finished orders"
+                          : "No finished orders"}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
           </div>
+
+          {/* Action Explanation */}
+          {!isCheckingOrders && !orderCheckError && (
+            <div
+              className={`p-4 rounded-lg border ${
+                deletionAction.action === "delete"
+                  ? "bg-red-50 border-red-200"
+                  : deletionAction.action === "archive"
+                    ? "bg-orange-50 border-orange-200"
+                    : "bg-gray-50 border-gray-200"
+              }`}
+            >
+              <div className="flex items-start space-x-3">
+                <div
+                  className={`p-2 rounded-full ${
+                    deletionAction.action === "delete"
+                      ? "bg-red-100"
+                      : deletionAction.action === "archive"
+                        ? "bg-orange-100"
+                        : "bg-gray-100"
+                  }`}
+                >
+                  {getActionIcon()}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <h4 className="font-medium">
+                      {deletionAction.action === "delete" &&
+                        "Permanent Deletion"}
+                      {deletionAction.action === "archive" && "Archive Only"}
+                      {deletionAction.action === "none" && "Action Blocked"}
+                    </h4>
+                    <Badge
+                      variant={
+                        deletionAction.action === "delete"
+                          ? "destructive"
+                          : deletionAction.action === "archive"
+                            ? "secondary"
+                            : "outline"
+                      }
+                    >
+                      {deletionAction.action === "delete" && "Permanent"}
+                      {deletionAction.action === "archive" && "Reversible"}
+                      {deletionAction.action === "none" && "Blocked"}
+                    </Badge>
+                  </div>
+                  <p
+                    className={`text-sm ${
+                      deletionAction.action === "delete"
+                        ? "text-red-700"
+                        : deletionAction.action === "archive"
+                          ? "text-orange-700"
+                          : "text-gray-700"
+                    }`}
+                  >
+                    {deletionAction.reason}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Stock Warning */}
+          {product.stockQuantity > 0 && deletionAction.canDelete && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-amber-800">
+                  <strong>Stock Warning:</strong> This product still has{" "}
+                  {product.stockQuantity} units in stock worth{" "}
+                  {formatCurrency(totalValue)}. This inventory will be
+                  permanently lost.
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <AlertDialogHeader></AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            disabled={isLoading}
-            className="bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
+            disabled={
+              isLoading ||
+              deletionAction.actionButtonDisabled ||
+              isCheckingOrders
+            }
+            className={
+              deletionAction.action === "delete"
+                ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                : deletionAction.action === "archive"
+                  ? "bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
+                  : "bg-gray-600 hover:bg-gray-700 focus:ring-gray-600"
+            }
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Archiving...</span>
+                <span>Processing...</span>
+              </div>
+            ) : isCheckingOrders ? (
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Checking...</span>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <Archive className="w-4 h-4" />
-                <span>Archive Product</span>
+                {getActionIcon()}
+                <span>{deletionAction.actionButtonText}</span>
               </div>
             )}
           </AlertDialogAction>

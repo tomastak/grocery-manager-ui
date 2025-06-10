@@ -297,6 +297,24 @@ class ApiClient {
   }
 
   /**
+   * Check if product has active orders (PENDING or PAID)
+   */
+  async hasActiveOrders(code: string): Promise<boolean> {
+    return this.request<boolean>(
+      `/api/v1/products/${encodeURIComponent(code)}/has-active-orders`,
+    );
+  }
+
+  /**
+   * Check if product has finished orders (CANCELED or EXPIRED)
+   */
+  async hasFinishedOrders(code: string): Promise<boolean> {
+    return this.request<boolean>(
+      `/api/v1/products/${encodeURIComponent(code)}/has-finished-orders`,
+    );
+  }
+
+  /**
    * Delete (archive) a product
    * Returns 204 for successful archival or 409 if product has active orders
    */
